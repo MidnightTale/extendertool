@@ -9,6 +9,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.inventory.FurnaceSmeltEvent;
+import org.bukkit.event.inventory.FurnaceStartSmeltEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.event.Listener;
@@ -28,6 +31,7 @@ import java.util.UUID;
 public final class Extendertool extends JavaPlugin implements Listener {
 
     private static final String CUSTOM_TOOL_KEY = "extendertool_item";
+    private static final String RAW_ZINC_KEY = "raw_zinc";
 
     @Override
     public void onEnable() {
@@ -55,7 +59,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
 
         if (meta != null) {
             final int Range = 7;
-            final int Attackspeed = -3;
+            final int Attackspeed = -1;
             final String Name = "Interaction Range";
             final int CustomModelData = 86001;
             AttributeModifier mainHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Range, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
@@ -162,4 +166,54 @@ public final class Extendertool extends JavaPlugin implements Listener {
         }
         return false;
     }
+    private ItemStack createZincItem() {
+        ItemStack zinc = new ItemStack(Material.RAW_IRON);
+        ItemMeta meta = zinc.getItemMeta();
+        final int CustomModelData = 86002;
+        if (meta != null) {
+            meta.getPersistentDataContainer().set(new NamespacedKey(this, RAW_ZINC_KEY), PersistentDataType.BYTE, (byte) 1);
+            meta.setCustomModelData(CustomModelData);
+            meta.displayName(Component.text("Raw Zinc"));
+            meta.setMaxStackSize(64);
+            zinc.setItemMeta(meta);
+        }
+        return zinc;
+    }
+
+    @EventHandler
+    public void onZincDrop(BlockBreakEvent event) {
+        if (event.getBlock().getType() == Material.DIORITE) {
+            if (Math.random() < 0.01) {
+                event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), createZincItem());
+            }
+        }
+    }
+
+    @EventHandler
+    public void onZincCraft(PrepareItemCraftEvent event) {
+        ItemStack[] matrix = event.getInventory().getMatrix();
+        if (matrix.length == 9) {
+            for (ItemStack item : matrix) {
+                if (item != null && item.getType() == Material.RAW_IRON) {
+                    ItemMeta meta = item.getItemMeta();
+                    if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, RAW_ZINC_KEY), PersistentDataType.BYTE)) {
+                        event.getInventory().setResult(null);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onZincSmelt(FurnaceSmeltEvent event) {
+        ItemStack item = event.getSource();
+        if (item != null && item.getType() == Material.RAW_IRON) {
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, RAW_ZINC_KEY), PersistentDataType.BYTE)) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
 }
