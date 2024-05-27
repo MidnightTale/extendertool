@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -259,17 +260,31 @@ public final class Extendertool extends JavaPlugin implements Listener {
         ItemStack base = smithingInventory.getItem(0);
         ItemStack addition = smithingInventory.getItem(1);
         ItemStack template = smithingInventory.getItem(2);
-        ItemStack brassIngot = new ItemStack(Material.GOLD_INGOT);
-        ItemMeta meta = brassIngot.getItemMeta();
-        final int CustomModelData = 86004;
 
         if (isZinc(base) && isCopper(addition) && isZinc(template)) {
             event.setResult(createBrassIngotItem());
-            meta.getPersistentDataContainer().set(new NamespacedKey(this, BRASS_INGOT_KEY), PersistentDataType.BYTE, (byte) 1);
-            meta.setCustomModelData(CustomModelData);
-            meta.displayName(Component.text("Brass Ingot").decoration(TextDecoration.ITALIC, false));
-            meta.setMaxStackSize(64);
-            event.getResult().setItemMeta(meta);
+        }
+    }
+
+    @EventHandler
+    public void onBrassCombined(InventoryClickEvent event) {
+        Inventory inv = event.getInventory();
+        for (ItemStack item : inv.getContents()) {
+            if (item != null && item.hasItemMeta()) {
+                ItemMeta meta = item.getItemMeta();
+                PersistentDataContainer container = meta.getPersistentDataContainer();
+
+                if (container.has(new NamespacedKey(this, BRASS_INGOT_KEY), PersistentDataType.BYTE)) {
+                    final int CustomModelData = 86004;
+                    if (meta != null) {
+                        meta.getPersistentDataContainer().set(new NamespacedKey(this, BRASS_INGOT_KEY), PersistentDataType.BYTE, (byte) 1);
+                        meta.setCustomModelData(CustomModelData);
+                        meta.displayName(Component.text("Brass Ingot").decoration(TextDecoration.ITALIC, false));
+                        meta.setMaxStackSize(64);
+                    }
+                    item.setItemMeta(meta);
+                }
+            }
         }
     }
 
