@@ -4,13 +4,13 @@
     "item": "minecraft:iron_ingot"
   },
   "base": {
-    "item": "minecraft:air"
+    "item": "minecraft:iron_ingot"
   },
   "addition": {
     "item": "minecraft:copper_ingot"
   },
   "result": {
-    "id": "minecraft:air",
-    "count": 1
+    "id": "minecraft:gold_ingot",
+    "count": 0
   }
 }

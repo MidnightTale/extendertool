@@ -10,18 +10,17 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
-import org.bukkit.inventory.ItemRarity;
-import org.bukkit.inventory.SmithingInventory;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerShearEntityEvent;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -40,6 +39,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
+        craftExtenderTool();
     }
 
     @Override
@@ -170,6 +170,38 @@ public final class Extendertool extends JavaPlugin implements Listener {
         }
         return false;
     }
+    private ItemStack createExtenderToolItem() {
+        ItemStack extendertool = new ItemStack(Material.SHEARS);
+        ItemMeta meta = extendertool.getItemMeta();
+        final int CustomModelData = 86003;
+        final int Range = 7;
+        final int Attackspeed = -1;
+        final String Name = "Interaction Range";
+        if (meta != null) {
+            AttributeModifier mainHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Range, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
+            AttributeModifier offHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Range, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.OFF_HAND);
+            AttributeModifier AttackmainHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Attackspeed, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
+            AttributeModifier AttackoffHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Attackspeed, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.OFF_HAND);
+
+            meta.addAttributeModifier(Attribute.PLAYER_BLOCK_INTERACTION_RANGE, mainHandModifier);
+            meta.addAttributeModifier(Attribute.PLAYER_BLOCK_INTERACTION_RANGE, offHandModifier);
+            meta.addAttributeModifier(Attribute.PLAYER_ENTITY_INTERACTION_RANGE, mainHandModifier);
+            meta.addAttributeModifier(Attribute.PLAYER_ENTITY_INTERACTION_RANGE, offHandModifier);
+            meta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED, AttackmainHandModifier);
+            meta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED, AttackoffHandModifier);
+            meta.setCustomModelData(CustomModelData);
+            meta.displayName(Component.text("Extender Tool").decoration(TextDecoration.ITALIC, false));
+            meta.setRarity(ItemRarity.EPIC);
+            meta.setMaxStackSize(1);
+
+            NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
+            PersistentDataContainer container = meta.getPersistentDataContainer();
+            container.set(toolKey, PersistentDataType.BYTE, (byte) 1);
+            extendertool.setItemMeta(meta);
+        }
+        return extendertool;
+    }
+
     private ItemStack createRawZincItem() {
         ItemStack rawzinc = new ItemStack(Material.RAW_IRON);
         ItemMeta meta = rawzinc.getItemMeta();
@@ -196,6 +228,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
         }
         return zinc;
     }
+
     private ItemStack createBrassIngotItem() {
         ItemStack brassIngot = new ItemStack(Material.GOLD_INGOT);
         ItemMeta meta = brassIngot.getItemMeta();
@@ -209,6 +242,26 @@ public final class Extendertool extends JavaPlugin implements Listener {
         }
         return brassIngot;
     }
+
+    public void craftExtenderTool() {
+        ItemStack brassIngot = createBrassIngotItem();
+        ItemStack recoveryCompass = new ItemStack(Material.RECOVERY_COMPASS);
+
+        ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(this, "extender_tool_recipe"), createExtenderToolItem());
+        recipe.shape(" XO", "XKX", "KX ");
+        recipe.setIngredient('X', brassIngot);
+        recipe.setIngredient('O', recoveryCompass);
+        recipe.setIngredient('K', Material.BREEZE_ROD);
+        Bukkit.getServer().addRecipe(recipe);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        NamespacedKey recipeKey = new NamespacedKey(this, "extender_tool_recipe");
+        player.discoverRecipe(recipeKey);
+    }
+
 
     @EventHandler
     public void onZincDrop(BlockBreakEvent event) {
@@ -282,6 +335,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
             }
         }
     }
+
 
 
 }
