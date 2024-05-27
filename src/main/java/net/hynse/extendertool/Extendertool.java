@@ -1,6 +1,8 @@
 package net.hynse.extendertool;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -33,6 +35,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
     private static final String CUSTOM_TOOL_KEY = "extendertool_item";
     private static final String RAW_ZINC_KEY = "raw_zinc";
     private static final String ZINC_KEY = "zinc";
+    private static final String BRASS_INGOT_KEY = "brass_ingot";
 
     @Override
     public void onEnable() {
@@ -174,7 +177,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
         if (meta != null) {
             meta.getPersistentDataContainer().set(new NamespacedKey(this, RAW_ZINC_KEY), PersistentDataType.BYTE, (byte) 1);
             meta.setCustomModelData(CustomModelData);
-            meta.displayName(Component.text("Raw Zinc"));
+            meta.displayName(Component.text("Raw Zinc").decoration(TextDecoration.ITALIC, false));
             meta.setMaxStackSize(64);
             rawzinc.setItemMeta(meta);
         }
@@ -187,7 +190,20 @@ public final class Extendertool extends JavaPlugin implements Listener {
         if (meta != null) {
             meta.getPersistentDataContainer().set(new NamespacedKey(this, ZINC_KEY), PersistentDataType.BYTE, (byte) 1);
             meta.setCustomModelData(CustomModelData);
-            meta.displayName(Component.text("Zinc"));
+            meta.displayName(Component.text("Zinc").decoration(TextDecoration.ITALIC, false));
+            meta.setMaxStackSize(64);
+            zinc.setItemMeta(meta);
+        }
+        return zinc;
+    }
+    private ItemStack createBrassIngotItem() {
+        ItemStack zinc = new ItemStack(Material.GOLD_INGOT);
+        ItemMeta meta = zinc.getItemMeta();
+        final int CustomModelData = 86003;
+        if (meta != null) {
+            meta.getPersistentDataContainer().set(new NamespacedKey(this, BRASS_INGOT_KEY), PersistentDataType.BYTE, (byte) 1);
+            meta.setCustomModelData(CustomModelData);
+            meta.displayName(Component.text("Brass Ingot").decoration(TextDecoration.ITALIC, false));
             meta.setMaxStackSize(64);
             zinc.setItemMeta(meta);
         }
@@ -199,6 +215,21 @@ public final class Extendertool extends JavaPlugin implements Listener {
         if (event.getBlock().getType() == Material.DIORITE) {
             if (Math.random() < 0.005) {
                 event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), createRawZincItem());
+            }
+        }
+    }
+    @EventHandler
+    public void onBrassIngotCraft(PrepareItemCraftEvent event) {
+        ItemStack[] matrix = event.getInventory().getMatrix();
+        if (matrix.length == 9) {
+            for (ItemStack item : matrix) {
+                if (item != null && item.getType() == Material.GOLD_INGOT) {
+                    ItemMeta meta = item.getItemMeta();
+                    if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, RAW_ZINC_KEY), PersistentDataType.BYTE)) {
+                        event.getInventory().setResult(null);
+                        return;
+                    }
+                }
             }
         }
     }
@@ -218,6 +249,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
             }
         }
     }
+
 
     @EventHandler
     public void onZincSmelt(FurnaceSmeltEvent event) {
