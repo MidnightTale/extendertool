@@ -50,14 +50,14 @@ public final class Extendertool extends JavaPlugin implements Listener {
     }
 
     private void extendertoolitemGive(Player player) {
-        ItemStack item = new ItemStack(Material.SHEARS);
-        ItemMeta meta = item.getItemMeta();
+        final ItemStack item = new ItemStack(Material.SHEARS);
+        final ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            int Range = 7;
-            int Attackspeed = -3;
-            String Name = "Interaction Range";
-            int CustomModelData = 86001;
+            final int Range = 7;
+            final int Attackspeed = -3;
+            final String Name = "Interaction Range";
+            final int CustomModelData = 86001;
             AttributeModifier mainHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Range, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
             AttributeModifier offHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Range, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.OFF_HAND);
             AttributeModifier AttackmainHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Attackspeed, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.OFF_HAND);
@@ -120,7 +120,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
         if (item != null && item.hasItemMeta()) {
             ItemMeta meta = item.getItemMeta();
             PersistentDataContainer container = meta.getPersistentDataContainer();
-            NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
+            final NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
 
             if (container.has(toolKey, PersistentDataType.BYTE)) {
                 Damageable damageable = (Damageable) meta;
@@ -157,7 +157,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             PersistentDataContainer container = meta.getPersistentDataContainer();
-            NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
+            final NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
             return container.has(toolKey, PersistentDataType.BYTE);
         }
         return false;
