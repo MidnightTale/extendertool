@@ -6,9 +6,9 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -20,7 +20,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
@@ -35,16 +34,14 @@ public final class Extendertool extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (sender instanceof Player) {
-            Player player = (Player) sender;
+        if (sender instanceof Player player) {
             if (command.getName().equalsIgnoreCase("extendertool")) {
                 if (player.hasPermission("extendertool.give")) {
                     extendertoolitemGive(player);
-                    return true;
                 } else {
                     player.sendMessage("You do not have permission to use this command.");
-                    return true;
                 }
+                return true;
             }
         }
         return false;
@@ -112,13 +109,16 @@ public final class Extendertool extends JavaPlugin implements Listener {
             NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
 
             if (container.has(toolKey, PersistentDataType.BYTE)) {
-                short currentDurability = item.getDurability();
-                if (currentDurability == 0) {
+                Damageable damageable = (Damageable) meta;
+                int currentDamage = damageable.getDamage();
+
+                if (currentDamage >= item.getType().getMaxDurability()) {
                     player.getInventory().setItem(slot, null);
-                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.8f, 1.0f);
-                    player.getWorld().playEffect(player.getLocation(), Effect.ELECTRIC_SPARK, 100);
+                    player.getWorld().spawnParticle(Particle.WAX_OFF, player.getLocation(), 100);
+                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.6f, 1.0f);
                 } else if (shouldLoseDurability(item)) {
-                    item.setDurability((short) (currentDurability + 1));
+                    damageable.setDamage(currentDamage - 1);
+                    item.setItemMeta(meta);
                 }
             }
         }
