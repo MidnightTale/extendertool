@@ -146,7 +146,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
         ItemMeta meta = extendertool.getItemMeta();
         final int CustomModelData = 86003;
         final int Range = 7;
-        final int Attackspeed = -1;
+        final double Attackspeed = -1.6;
         final String Name = "Interaction Range";
         if (meta != null) {
             AttributeModifier mainHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Range, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
@@ -203,7 +203,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
     private ItemStack createBrassIngotItem() {
         ItemStack brassIngot = new ItemStack(Material.GOLD_INGOT);
         ItemMeta meta = brassIngot.getItemMeta();
-        final int CustomModelData = 86003;
+        final int CustomModelData = 86004;
         if (meta != null) {
             meta.getPersistentDataContainer().set(new NamespacedKey(this, BRASS_INGOT_KEY), PersistentDataType.BYTE, (byte) 1);
             meta.setCustomModelData(CustomModelData);
@@ -214,16 +214,18 @@ public final class Extendertool extends JavaPlugin implements Listener {
         return brassIngot;
     }
 
-    public void craftExtenderTool() {
+    private void craftExtenderTool() {
+        NamespacedKey recipeKey = new NamespacedKey(this, "extender_tool_recipe");
         ItemStack brassIngot = createBrassIngotItem();
         ItemStack recoveryCompass = new ItemStack(Material.RECOVERY_COMPASS);
 
-        ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(this, "extender_tool_recipe"), createExtenderToolItem());
-        recipe.shape(" XO", "XKX", "KX ");
-        recipe.setIngredient('X', brassIngot);
+        ShapedRecipe recipe = new ShapedRecipe(recipeKey, createExtenderToolItem());
+        recipe.shape("XOX", "XKX", "XKX");
+        recipe.setIngredient('X', new RecipeChoice.ExactChoice(brassIngot));
         recipe.setIngredient('O', recoveryCompass);
         recipe.setIngredient('K', Material.BREEZE_ROD);
-        Bukkit.getServer().addRecipe(recipe);
+
+        Bukkit.addRecipe(recipe);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -257,15 +259,32 @@ public final class Extendertool extends JavaPlugin implements Listener {
         ItemStack base = smithingInventory.getItem(0);
         ItemStack addition = smithingInventory.getItem(1);
         ItemStack template = smithingInventory.getItem(2);
+        ItemStack brassIngot = new ItemStack(Material.GOLD_INGOT);
+        ItemMeta meta = brassIngot.getItemMeta();
+        final int CustomModelData = 86004;
 
         if (isZinc(base) && isCopper(addition) && isZinc(template)) {
             event.setResult(createBrassIngotItem());
+            meta.getPersistentDataContainer().set(new NamespacedKey(this, BRASS_INGOT_KEY), PersistentDataType.BYTE, (byte) 1);
+            meta.setCustomModelData(CustomModelData);
+            meta.displayName(Component.text("Brass Ingot").decoration(TextDecoration.ITALIC, false));
+            meta.setMaxStackSize(64);
+            event.getResult().setItemMeta(meta);
         }
     }
 
     @EventHandler
     public void onBrassIngotCraft(PrepareItemCraftEvent event) {
         ItemStack[] matrix = event.getInventory().getMatrix();
+        ItemStack result = event.getInventory().getResult();
+
+        NamespacedKey extenderToolKey = new NamespacedKey(this, "extender_tool_recipe");
+        Recipe recipe = event.getRecipe();
+
+        if (recipe != null && recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(extenderToolKey)) {
+            return;
+        }
+
         if (matrix.length == 9) {
             for (ItemStack item : matrix) {
                 if (item != null && item.getType() == Material.GOLD_INGOT) {
