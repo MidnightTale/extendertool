@@ -1,5 +1,6 @@
 package net.hynse.extendertool;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -8,6 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -52,15 +54,27 @@ public final class Extendertool extends JavaPlugin implements Listener {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            int Range = 5;
+            int Range = 7;
+            int Attackspeed = -3;
             String Name = "Interaction Range";
             int CustomModelData = 86001;
             AttributeModifier mainHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Range, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
             AttributeModifier offHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Range, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.OFF_HAND);
+            AttributeModifier AttackmainHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Attackspeed, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.OFF_HAND);
+            AttributeModifier AttackoffHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Attackspeed, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.OFF_HAND);
+
+
 
             meta.addAttributeModifier(Attribute.PLAYER_BLOCK_INTERACTION_RANGE, mainHandModifier);
             meta.addAttributeModifier(Attribute.PLAYER_BLOCK_INTERACTION_RANGE, offHandModifier);
+            meta.addAttributeModifier(Attribute.PLAYER_ENTITY_INTERACTION_RANGE, mainHandModifier);
+            meta.addAttributeModifier(Attribute.PLAYER_ENTITY_INTERACTION_RANGE, offHandModifier);
+            meta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED, AttackmainHandModifier);
+            meta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED, AttackoffHandModifier);
             meta.setCustomModelData(CustomModelData);
+            meta.displayName(Component.text("Extender Tool"));
+            meta.setRarity(ItemRarity.EPIC);
+            meta.setMaxStackSize(1);
 
             NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
             PersistentDataContainer container = meta.getPersistentDataContainer();
@@ -117,7 +131,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
                     player.getWorld().spawnParticle(Particle.WAX_OFF, player.getLocation(), 100);
                     player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.6f, 1.0f);
                 } else if (shouldLoseDurability(item)) {
-                    damageable.setDamage(currentDamage - 1);
+                    damageable.setDamage(currentDamage + 1);
                     item.setItemMeta(meta);
                 }
             }
