@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smithing_transform",
+  "template": {
+    "item": "minecraft:iron_ingot"
+  },
+  "base": {
+    "item": "minecraft:air"
+  },
+  "addition": {
+    "item": "minecraft:copper_ingot"
+  },
+  "result": {
+    "id": "minecraft:air",
+    "count": 1
+  }
+}

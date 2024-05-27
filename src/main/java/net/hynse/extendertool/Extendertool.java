@@ -197,17 +197,17 @@ public final class Extendertool extends JavaPlugin implements Listener {
         return zinc;
     }
     private ItemStack createBrassIngotItem() {
-        ItemStack zinc = new ItemStack(Material.GOLD_INGOT);
-        ItemMeta meta = zinc.getItemMeta();
+        ItemStack brassIngot = new ItemStack(Material.GOLD_INGOT);
+        ItemMeta meta = brassIngot.getItemMeta();
         final int CustomModelData = 86003;
         if (meta != null) {
             meta.getPersistentDataContainer().set(new NamespacedKey(this, BRASS_INGOT_KEY), PersistentDataType.BYTE, (byte) 1);
             meta.setCustomModelData(CustomModelData);
             meta.displayName(Component.text("Brass Ingot").decoration(TextDecoration.ITALIC, false));
             meta.setMaxStackSize(64);
-            zinc.setItemMeta(meta);
+            brassIngot.setItemMeta(meta);
         }
-        return zinc;
+        return brassIngot;
     }
 
     @EventHandler
@@ -232,8 +232,9 @@ public final class Extendertool extends JavaPlugin implements Listener {
         SmithingInventory smithingInventory = event.getInventory();
         ItemStack base = smithingInventory.getItem(0);
         ItemStack addition = smithingInventory.getItem(1);
+        ItemStack template = smithingInventory.getItem(2);
 
-        if (isCopper(base) && isZinc(addition)) {
+        if (isZinc(base) && isCopper(addition) && isZinc(template)) {
             event.setResult(createBrassIngotItem());
         }
     }
