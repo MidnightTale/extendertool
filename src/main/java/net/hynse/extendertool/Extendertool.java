@@ -39,7 +39,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
         craftExtenderTool();
-        smithingBrassIngot();
+        craftBrassIngot();
     }
 
     @Override
@@ -227,18 +227,19 @@ public final class Extendertool extends JavaPlugin implements Listener {
 
         Bukkit.addRecipe(recipe);
     }
-
-    private void smithingBrassIngot() {
+    private void craftBrassIngot() {
         NamespacedKey recipeKey = new NamespacedKey(this, "brass_ingot_recipe");
+        ItemStack brassIngot = createBrassIngotItem();
+        ItemStack zinc = createZincItem();
+        ItemStack copperIngot = new ItemStack(Material.COPPER_INGOT);
 
-        ItemStack result = createBrassIngotItem();
-        RecipeChoice base = new RecipeChoice.ExactChoice(createZincItem());
-        RecipeChoice template = new RecipeChoice.ExactChoice(createZincItem());
-        RecipeChoice addition = new RecipeChoice.ExactChoice(new ItemStack(Material.COPPER_INGOT));
+        ShapelessRecipe recipe = new ShapelessRecipe(recipeKey, brassIngot);
+        recipe.addIngredient(new RecipeChoice.ExactChoice(zinc));
+        recipe.addIngredient(new RecipeChoice.ExactChoice(copperIngot));
 
-        SmithingRecipe smithingRecipe = new SmithingTransformRecipe (recipeKey, result, template, base, addition);
-        getServer().addRecipe(smithingRecipe);
+        Bukkit.addRecipe(recipe);
     }
+
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
