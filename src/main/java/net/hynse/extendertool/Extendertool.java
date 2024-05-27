@@ -25,7 +25,8 @@ public final class Extendertool extends JavaPlugin implements Listener {
 
     private static final String CUSTOM_TOOL_KEY = "extendertool_item";
     private static final String DURABILITY_KEY = "extendertool_durability";
-    private static final int INITIAL_DURABILITY = 100;
+    private static final int INITIAL_DURABILITY = 10;
+    private static final int MAX_DURABILITY = Material.SHEARS.getMaxDurability();
 
     @Override
     public void onEnable() {
@@ -50,7 +51,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
     }
 
     private void extendertoolitemGive(Player player) {
-        ItemStack item = new ItemStack(Material.FEATHER);
+        ItemStack item = new ItemStack(Material.SHEARS);
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
@@ -71,6 +72,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
             container.set(durabilityKey, PersistentDataType.INTEGER, INITIAL_DURABILITY);
 
             item.setItemMeta(meta);
+            item.setDurability((short) (MAX_DURABILITY - INITIAL_DURABILITY));
 
             player.getInventory().addItem(item);
         }
@@ -101,13 +103,11 @@ public final class Extendertool extends JavaPlugin implements Listener {
             if (container.has(toolKey, PersistentDataType.BYTE)) {
                 int durability = container.getOrDefault(durabilityKey, PersistentDataType.INTEGER, INITIAL_DURABILITY);
                 durability--;
-                if (durability <= 0) {
-                    player.getInventory().setItem(slot, null);
-                } else {
                     container.set(durabilityKey, PersistentDataType.INTEGER, durability);
                     item.setItemMeta(meta);
+                    item.setDurability((short) (MAX_DURABILITY - durability));
                 }
             }
         }
     }
-}
+
