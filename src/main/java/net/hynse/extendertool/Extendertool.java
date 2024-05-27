@@ -32,6 +32,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
 
     private static final String CUSTOM_TOOL_KEY = "extendertool_item";
     private static final String RAW_ZINC_KEY = "raw_zinc";
+    private static final String ZINC_KEY = "zinc";
 
     @Override
     public void onEnable() {
@@ -166,14 +167,27 @@ public final class Extendertool extends JavaPlugin implements Listener {
         }
         return false;
     }
-    private ItemStack createZincItem() {
-        ItemStack zinc = new ItemStack(Material.RAW_IRON);
-        ItemMeta meta = zinc.getItemMeta();
+    private ItemStack createRawZincItem() {
+        ItemStack rawzinc = new ItemStack(Material.RAW_IRON);
+        ItemMeta meta = rawzinc.getItemMeta();
         final int CustomModelData = 86002;
         if (meta != null) {
             meta.getPersistentDataContainer().set(new NamespacedKey(this, RAW_ZINC_KEY), PersistentDataType.BYTE, (byte) 1);
             meta.setCustomModelData(CustomModelData);
             meta.displayName(Component.text("Raw Zinc"));
+            meta.setMaxStackSize(64);
+            rawzinc.setItemMeta(meta);
+        }
+        return rawzinc;
+    }
+    private ItemStack createZincItem() {
+        ItemStack zinc = new ItemStack(Material.IRON_INGOT);
+        ItemMeta meta = zinc.getItemMeta();
+        final int CustomModelData = 86003;
+        if (meta != null) {
+            meta.getPersistentDataContainer().set(new NamespacedKey(this, ZINC_KEY), PersistentDataType.BYTE, (byte) 1);
+            meta.setCustomModelData(CustomModelData);
+            meta.displayName(Component.text("Zinc"));
             meta.setMaxStackSize(64);
             zinc.setItemMeta(meta);
         }
@@ -183,8 +197,8 @@ public final class Extendertool extends JavaPlugin implements Listener {
     @EventHandler
     public void onZincDrop(BlockBreakEvent event) {
         if (event.getBlock().getType() == Material.DIORITE) {
-            if (Math.random() < 0.01) {
-                event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), createZincItem());
+            if (Math.random() < 0.005) {
+                event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), createRawZincItem());
             }
         }
     }
@@ -211,9 +225,10 @@ public final class Extendertool extends JavaPlugin implements Listener {
         if (item != null && item.getType() == Material.RAW_IRON) {
             ItemMeta meta = item.getItemMeta();
             if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, RAW_ZINC_KEY), PersistentDataType.BYTE)) {
-                event.setCancelled(true);
+                event.setResult(createZincItem());
             }
         }
     }
+
 
 }
