@@ -1,7 +1,6 @@
 package net.hynse.extendertool;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -12,9 +11,10 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
-import org.bukkit.event.inventory.FurnaceStartSmeltEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.event.inventory.PrepareSmithingEvent;
 import org.bukkit.inventory.ItemRarity;
+import org.bukkit.inventory.SmithingInventory;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -218,6 +218,26 @@ public final class Extendertool extends JavaPlugin implements Listener {
             }
         }
     }
+
+    private boolean isZinc(ItemStack item) {
+        return item != null && item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(this, ZINC_KEY), PersistentDataType.BYTE);
+    }
+
+    private boolean isCopper(ItemStack item) {
+        return item != null && item.getType() == Material.COPPER_INGOT && item.hasItemMeta();
+    }
+
+    @EventHandler
+    public void onBrassCombined(PrepareSmithingEvent event) {
+        SmithingInventory smithingInventory = event.getInventory();
+        ItemStack base = smithingInventory.getItem(0);
+        ItemStack addition = smithingInventory.getItem(1);
+
+        if (isCopper(base) && isZinc(addition)) {
+            event.setResult(createBrassIngotItem());
+        }
+    }
+
     @EventHandler
     public void onBrassIngotCraft(PrepareItemCraftEvent event) {
         ItemStack[] matrix = event.getInventory().getMatrix();
@@ -225,7 +245,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
             for (ItemStack item : matrix) {
                 if (item != null && item.getType() == Material.GOLD_INGOT) {
                     ItemMeta meta = item.getItemMeta();
-                    if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, RAW_ZINC_KEY), PersistentDataType.BYTE)) {
+                    if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, BRASS_INGOT_KEY), PersistentDataType.BYTE)) {
                         event.getInventory().setResult(null);
                         return;
                     }
