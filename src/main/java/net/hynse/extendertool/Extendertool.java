@@ -78,15 +78,19 @@ public final class Extendertool extends JavaPlugin implements Listener {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
-        handleToolDurability(player, EquipmentSlot.HAND);
-        handleToolDurability(player, EquipmentSlot.OFF_HAND);
+        if (player.getGameMode() != GameMode.CREATIVE) {
+            handleToolDurability(player, EquipmentSlot.HAND);
+            handleToolDurability(player, EquipmentSlot.OFF_HAND);
+        }
     }
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
         Player player = event.getPlayer();
-        handleToolDurability(player, EquipmentSlot.HAND);
-        handleToolDurability(player, EquipmentSlot.OFF_HAND);
+        if (player.getGameMode() != GameMode.CREATIVE) {
+            handleToolDurability(player, EquipmentSlot.HAND);
+            handleToolDurability(player, EquipmentSlot.OFF_HAND);
+        }
     }
     @EventHandler
     public void onPlayerShearEntity(PlayerShearEntityEvent event) {
