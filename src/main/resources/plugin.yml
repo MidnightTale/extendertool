@@ -3,3 +3,9 @@ version: '${version}'
 main: net.hynse.extendertool.Extendertool
 api-version: '1.20'
 folia-supported: true
+commands:
+  extendertool:
+    description: Gives the player an item that increases interaction range
+    usage: /<command>
+    permission: extendertool.give
+    permission-message: You do not have permission to use this command.

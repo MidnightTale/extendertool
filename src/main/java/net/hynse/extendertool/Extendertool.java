@@ -1,4 +1,5 @@
 package net.hynse.extendertool;
+import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.Material;
@@ -14,14 +15,23 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.UUID;
 
 public final class Extendertool extends JavaPlugin implements Listener {
+    @Override
+    public void onEnable() {
+        Bukkit.getPluginManager().registerEvents(this, this);
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player) {
             Player player = (Player) sender;
             if (command.getName().equalsIgnoreCase("extendertool")) {
-                giveRangeItem(player);
-                return true;
+                if (player.hasPermission("extendertool.give")) {
+                    giveRangeItem(player);
+                    return true;
+                } else {
+                    player.sendMessage("You do not have permission to use this command.");
+                    return true;
+                }
             }
         }
         return false;
