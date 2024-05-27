@@ -1,5 +1,6 @@
 package net.hynse.extendertool;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.Material;
@@ -10,6 +11,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.UUID;
@@ -26,7 +29,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
             Player player = (Player) sender;
             if (command.getName().equalsIgnoreCase("extendertool")) {
                 if (player.hasPermission("extendertool.give")) {
-                    giveRangeItem(player);
+                    extendertoolitemGive(player);
                     return true;
                 } else {
                     player.sendMessage("You do not have permission to use this command.");
@@ -37,13 +40,25 @@ public final class Extendertool extends JavaPlugin implements Listener {
         return false;
     }
 
-    private void giveRangeItem(Player player) {
-        ItemStack item = new ItemStack(Material.STICK);
+    private void extendertoolitemGive(Player player) {
+        ItemStack item = new ItemStack(Material.FEATHER);
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            AttributeModifier modifier = new AttributeModifier(UUID.randomUUID(), "Interaction Range", 5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.OFF_HAND);
-            meta.addAttributeModifier(Attribute.PLAYER_BLOCK_INTERACTION_RANGE, modifier);
+            int Range = 5;
+            String Name = "Interaction Range";
+            int CustomModelData = 86001;
+            AttributeModifier mainHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Range, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
+            AttributeModifier offHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Range, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.OFF_HAND);
+
+            meta.addAttributeModifier(Attribute.PLAYER_BLOCK_INTERACTION_RANGE, mainHandModifier);
+            meta.addAttributeModifier(Attribute.PLAYER_BLOCK_INTERACTION_RANGE, offHandModifier);
+            meta.setCustomModelData(CustomModelData);
+
+            NamespacedKey key = new NamespacedKey(this, "extendertool_item");
+            PersistentDataContainer container = meta.getPersistentDataContainer();
+            container.set(key, PersistentDataType.BYTE, (byte) 1);
+
             item.setItemMeta(meta);
 
             player.getInventory().addItem(item);
