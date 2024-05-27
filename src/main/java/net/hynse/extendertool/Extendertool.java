@@ -1,13 +1,17 @@
 package net.hynse.extendertool;
+
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -18,6 +22,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.UUID;
 
 public final class Extendertool extends JavaPlugin implements Listener {
+
+    private static final String CUSTOM_TOOL_KEY = "extendertool_item";
+    private static final String DURABILITY_KEY = "extendertool_durability";
+    private static final int INITIAL_DURABILITY = 100;
+
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
@@ -55,13 +64,50 @@ public final class Extendertool extends JavaPlugin implements Listener {
             meta.addAttributeModifier(Attribute.PLAYER_BLOCK_INTERACTION_RANGE, offHandModifier);
             meta.setCustomModelData(CustomModelData);
 
-            NamespacedKey key = new NamespacedKey(this, "extendertool_item");
+            NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
+            NamespacedKey durabilityKey = new NamespacedKey(this, DURABILITY_KEY);
             PersistentDataContainer container = meta.getPersistentDataContainer();
-            container.set(key, PersistentDataType.BYTE, (byte) 1);
+            container.set(toolKey, PersistentDataType.BYTE, (byte) 1);
+            container.set(durabilityKey, PersistentDataType.INTEGER, INITIAL_DURABILITY);
 
             item.setItemMeta(meta);
 
             player.getInventory().addItem(item);
+        }
+    }
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        Player player = event.getPlayer();
+        handleToolDurability(player, EquipmentSlot.HAND);
+        handleToolDurability(player, EquipmentSlot.OFF_HAND);
+    }
+
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        Player player = event.getPlayer();
+        handleToolDurability(player, EquipmentSlot.HAND);
+        handleToolDurability(player, EquipmentSlot.OFF_HAND);
+    }
+
+    private void handleToolDurability(Player player, EquipmentSlot slot) {
+        ItemStack item = player.getInventory().getItem(slot);
+        if (item != null && item.hasItemMeta()) {
+            ItemMeta meta = item.getItemMeta();
+            PersistentDataContainer container = meta.getPersistentDataContainer();
+            NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
+            NamespacedKey durabilityKey = new NamespacedKey(this, DURABILITY_KEY);
+
+            if (container.has(toolKey, PersistentDataType.BYTE)) {
+                int durability = container.getOrDefault(durabilityKey, PersistentDataType.INTEGER, INITIAL_DURABILITY);
+                durability--;
+                if (durability <= 0) {
+                    player.getInventory().setItem(slot, null);
+                } else {
+                    container.set(durabilityKey, PersistentDataType.INTEGER, durability);
+                    item.setItemMeta(meta);
+                }
+            }
         }
     }
 }
