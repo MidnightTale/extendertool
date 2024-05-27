@@ -60,37 +60,8 @@ public final class Extendertool extends JavaPlugin implements Listener {
     private void extendertoolitemGive(Player player) {
         final ItemStack item = new ItemStack(Material.SHEARS);
         final ItemMeta meta = item.getItemMeta();
-
         if (meta != null) {
-            final int Range = 7;
-            final int Attackspeed = -1;
-            final String Name = "Interaction Range";
-            final int CustomModelData = 86001;
-            AttributeModifier mainHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Range, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
-            AttributeModifier offHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Range, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.OFF_HAND);
-            AttributeModifier AttackmainHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Attackspeed, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
-            AttributeModifier AttackoffHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Attackspeed, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.OFF_HAND);
-
-
-
-            meta.addAttributeModifier(Attribute.PLAYER_BLOCK_INTERACTION_RANGE, mainHandModifier);
-            meta.addAttributeModifier(Attribute.PLAYER_BLOCK_INTERACTION_RANGE, offHandModifier);
-            meta.addAttributeModifier(Attribute.PLAYER_ENTITY_INTERACTION_RANGE, mainHandModifier);
-            meta.addAttributeModifier(Attribute.PLAYER_ENTITY_INTERACTION_RANGE, offHandModifier);
-            meta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED, AttackmainHandModifier);
-            meta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED, AttackoffHandModifier);
-            meta.setCustomModelData(CustomModelData);
-            meta.displayName(Component.text("Extender Tool"));
-            meta.setRarity(ItemRarity.EPIC);
-            meta.setMaxStackSize(1);
-
-            NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
-            PersistentDataContainer container = meta.getPersistentDataContainer();
-            container.set(toolKey, PersistentDataType.BYTE, (byte) 1);
-
-            item.setItemMeta(meta);
-
-            player.getInventory().addItem(item);
+            player.getInventory().addItem(createExtenderToolItem());
         }
     }
 
