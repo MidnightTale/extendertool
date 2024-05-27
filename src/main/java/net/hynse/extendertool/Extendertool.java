@@ -25,6 +25,8 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
@@ -240,6 +242,75 @@ public final class Extendertool extends JavaPlugin implements Listener {
         Bukkit.addRecipe(recipe);
     }
 
+    @EventHandler
+    public void onPrepareCraftBrassIngot(PrepareItemCraftEvent event) {
+        CraftingInventory inventory = event.getInventory();
+
+        ItemStack zinc = createZincItem();
+        ItemStack copperIngot = new ItemStack(Material.COPPER_INGOT);
+
+        if (hasCorrectIngredients(inventory, zinc, copperIngot)) {
+            inventory.setResult(createBrassIngotItem());
+        }
+    }
+
+    private boolean hasCorrectIngredients(CraftingInventory inventory, ItemStack... ingredients) {
+        ItemStack[] matrix = inventory.getMatrix();
+
+        if (matrix.length != ingredients.length) {
+            return false;
+        }
+
+        for (int i = 0; i < matrix.length; i++) {
+            ItemStack currentItem = matrix[i];
+            ItemStack requiredItem = ingredients[i];
+            if (currentItem == null || !currentItem.isSimilar(requiredItem)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    @EventHandler
+    public void onPrepareCraftExtenderTool(PrepareItemCraftEvent event) {
+        CraftingInventory inventory = event.getInventory();
+
+        String[] shape = {"XOX", "XKX", "XKX"};
+        Map<Character, ItemStack> ingredients = new HashMap<>();
+        ingredients.put('X', createBrassIngotItem());
+        ingredients.put('O', new ItemStack(Material.RECOVERY_COMPASS));
+        ingredients.put('K', new ItemStack(Material.BREEZE_ROD));
+
+        if (matchesRecipe(inventory, shape, ingredients)) {
+            inventory.setResult(createExtenderToolItem());
+        }
+    }
+
+    private boolean matchesRecipe(CraftingInventory inventory, String[] shape, Map<Character, ItemStack> ingredients) {
+        ItemStack[] matrix = inventory.getMatrix();
+
+        int shapeRows = shape.length;
+        int shapeCols = shape[0].length();
+        if (inventory.getMatrix().length != shapeRows || inventory.getResult().getType() == Material.AIR) {
+            return false;
+        }
+
+        for (int i = 0; i < shapeRows; i++) {
+            for (int j = 0; j < shapeCols; j++) {
+                char symbol = shape[i].charAt(j);
+                ItemStack requiredItem = ingredients.get(symbol);
+                ItemStack currentItem = matrix[i * shapeCols + j];
+                if (requiredItem != null && (currentItem == null || !currentItem.isSimilar(requiredItem))) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
@@ -270,11 +341,26 @@ public final class Extendertool extends JavaPlugin implements Listener {
             return;
         }
 
+        for (ItemStack item : matrix) {
+            if (item != null && item.getType() == Material.GOLD_INGOT) {
+                ItemMeta meta = item.getItemMeta();
+                if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, BRASS_INGOT_KEY), PersistentDataType.BYTE)) {
+                    event.getInventory().setResult(null);
+                    return;
+                }
+            }
+        }
+    }
+
+
+    @EventHandler
+    public void onZincRawCraft(PrepareItemCraftEvent event) {
+        ItemStack[] matrix = event.getInventory().getMatrix();
         if (matrix.length == 9) {
             for (ItemStack item : matrix) {
-                if (item != null && item.getType() == Material.GOLD_INGOT) {
+                if (item != null && item.getType() == Material.RAW_IRON) {
                     ItemMeta meta = item.getItemMeta();
-                    if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, BRASS_INGOT_KEY), PersistentDataType.BYTE)) {
+                    if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, RAW_ZINC_KEY), PersistentDataType.BYTE)) {
                         event.getInventory().setResult(null);
                         return;
                     }
@@ -282,30 +368,26 @@ public final class Extendertool extends JavaPlugin implements Listener {
             }
         }
     }
-
     @EventHandler
     public void onZincCraft(PrepareItemCraftEvent event) {
         ItemStack[] matrix = event.getInventory().getMatrix();
-        NamespacedKey zincKey = new NamespacedKey(this, "brass_ingot_recipe");
+        NamespacedKey brassKey = new NamespacedKey(this, "brass_ingot_recipe");
         Recipe recipe = event.getRecipe();
 
-        if (recipe != null && recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(zincKey)) {
+        if (recipe != null && recipe instanceof ShapelessRecipe && ((ShapelessRecipe) recipe).getKey().equals(brassKey)) {
             return;
         }
 
-        if (matrix.length == 9) {
-            for (ItemStack item : matrix) {
-                if (item != null && item.getType() == Material.IRON_INGOT) {
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, ZINC_KEY), PersistentDataType.BYTE)) {
-                        event.getInventory().setResult(null);
-                        return;
-                    }
+        for (ItemStack item : matrix) {
+            if (item != null && item.getType() == Material.IRON_INGOT) {
+                ItemMeta meta = item.getItemMeta();
+                if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, ZINC_KEY), PersistentDataType.BYTE)) {
+                    event.getInventory().setResult(null);
+                    return;
                 }
             }
         }
     }
-
 
     @EventHandler
     public void onZincSmelt(FurnaceSmeltEvent event) {
