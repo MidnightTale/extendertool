@@ -1,8 +1,6 @@
 package net.hynse.extendertool;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.command.Command;
@@ -110,8 +108,12 @@ public final class Extendertool extends JavaPlugin implements Listener {
             NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
 
             if (container.has(toolKey, PersistentDataType.BYTE)) {
-                if (shouldLoseDurability(item)) {
-                    short currentDurability = item.getDurability();
+                short currentDurability = item.getDurability();
+                if (currentDurability == 0) {
+                    player.getInventory().setItem(slot, null);
+                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.8f, 1.0f);
+                    player.getWorld().playEffect(player.getLocation(), Effect.ELECTRIC_SPARK, 100);
+                } else if (shouldLoseDurability(item)) {
                     item.setDurability((short) (currentDurability + 1));
                 }
             }
