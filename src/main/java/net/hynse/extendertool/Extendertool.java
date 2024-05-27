@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -89,6 +90,17 @@ public final class Extendertool extends JavaPlugin implements Listener {
         handleToolDurability(player, EquipmentSlot.HAND);
         handleToolDurability(player, EquipmentSlot.OFF_HAND);
     }
+    @EventHandler
+    public void onPlayerShearEntity(PlayerShearEntityEvent event) {
+        Player player = event.getPlayer();
+        ItemStack mainHandItem = player.getInventory().getItemInMainHand();
+        ItemStack offHandItem = player.getInventory().getItemInOffHand();
+
+        if (isextendertool(mainHandItem) || isextendertool(offHandItem)) {
+            event.setCancelled(true);
+        }
+    }
+
 
     private void handleToolDurability(Player player, EquipmentSlot slot) {
         ItemStack item = player.getInventory().getItem(slot);
@@ -120,5 +132,14 @@ public final class Extendertool extends JavaPlugin implements Listener {
             return 100 / (unbreakingLevel + 1);
         }
         return 100;
+    }
+    private boolean isextendertool(ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            PersistentDataContainer container = meta.getPersistentDataContainer();
+            NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
+            return container.has(toolKey, PersistentDataType.BYTE);
+        }
+        return false;
     }
 }
