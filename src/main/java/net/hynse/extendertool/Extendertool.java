@@ -8,6 +8,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -27,6 +28,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -264,28 +266,8 @@ public final class Extendertool extends JavaPlugin implements Listener {
         if (isZinc(base) && isCopper(addition) && isZinc(template)) {
             event.setResult(createBrassIngotItem());
         }
-    }
-
-    @EventHandler
-    public void onBrassCombined(InventoryClickEvent event) {
-        Inventory inv = event.getInventory();
-        for (ItemStack item : inv.getContents()) {
-            if (item != null && item.hasItemMeta()) {
-                ItemMeta meta = item.getItemMeta();
-                PersistentDataContainer container = meta.getPersistentDataContainer();
-
-                if (container.has(new NamespacedKey(this, BRASS_INGOT_KEY), PersistentDataType.BYTE)) {
-                    final int CustomModelData = 86004;
-                    if (meta != null) {
-                        meta.getPersistentDataContainer().set(new NamespacedKey(this, BRASS_INGOT_KEY), PersistentDataType.BYTE, (byte) 1);
-                        meta.setCustomModelData(CustomModelData);
-                        meta.displayName(Component.text("Brass Ingot").decoration(TextDecoration.ITALIC, false));
-                        meta.setMaxStackSize(64);
-                    }
-                    item.setItemMeta(meta);
-                }
-            }
-        }
+        List<HumanEntity> viewers = event.getViewers();
+        viewers.forEach(humanEntity -> ((Player)humanEntity).updateInventory());
     }
 
     @EventHandler
