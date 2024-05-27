@@ -33,15 +33,11 @@ import java.util.UUID;
 public final class Extendertool extends JavaPlugin implements Listener {
 
     private static final String CUSTOM_TOOL_KEY = "extendertool_item";
-    private static final String RAW_ZINC_KEY = "raw_zinc";
-    private static final String ZINC_KEY = "zinc";
-    private static final String BRASS_INGOT_KEY = "brass_ingot";
 
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
         craftExtenderTool();
-        craftBrassIngot();
     }
 
     @Override
@@ -175,231 +171,22 @@ public final class Extendertool extends JavaPlugin implements Listener {
         return extendertool;
     }
 
-    private ItemStack createRawZincItem() {
-        ItemStack rawzinc = new ItemStack(Material.RAW_IRON);
-        ItemMeta meta = rawzinc.getItemMeta();
-        final int CustomModelData = 86002;
-        if (meta != null) {
-            meta.getPersistentDataContainer().set(new NamespacedKey(this, RAW_ZINC_KEY), PersistentDataType.BYTE, (byte) 1);
-            meta.setCustomModelData(CustomModelData);
-            meta.displayName(Component.text("Raw Zinc").decoration(TextDecoration.ITALIC, false));
-            meta.setMaxStackSize(64);
-            rawzinc.setItemMeta(meta);
-        }
-        return rawzinc;
-    }
-    private ItemStack createZincItem() {
-        ItemStack zinc = new ItemStack(Material.IRON_INGOT);
-        ItemMeta meta = zinc.getItemMeta();
-        final int CustomModelData = 86003;
-        if (meta != null) {
-            meta.getPersistentDataContainer().set(new NamespacedKey(this, ZINC_KEY), PersistentDataType.BYTE, (byte) 1);
-            meta.setCustomModelData(CustomModelData);
-            meta.displayName(Component.text("Zinc").decoration(TextDecoration.ITALIC, false));
-            meta.setMaxStackSize(64);
-            zinc.setItemMeta(meta);
-        }
-        return zinc;
-    }
-
-    private ItemStack createBrassIngotItem() {
-        ItemStack brassIngot = new ItemStack(Material.GOLD_INGOT);
-        ItemMeta meta = brassIngot.getItemMeta();
-        final int CustomModelData = 86004;
-        if (meta != null) {
-            meta.getPersistentDataContainer().set(new NamespacedKey(this, BRASS_INGOT_KEY), PersistentDataType.BYTE, (byte) 1);
-            meta.setCustomModelData(CustomModelData);
-            meta.displayName(Component.text("Brass Ingot").decoration(TextDecoration.ITALIC, false));
-            meta.setMaxStackSize(64);
-            brassIngot.setItemMeta(meta);
-        }
-        return brassIngot;
-    }
-
     private void craftExtenderTool() {
         NamespacedKey recipeKey = new NamespacedKey(this, "extender_tool_recipe");
-        ItemStack brassIngot = createBrassIngotItem();
-        ItemStack recoveryCompass = new ItemStack(Material.RECOVERY_COMPASS);
 
         ShapedRecipe recipe = new ShapedRecipe(recipeKey, createExtenderToolItem());
         recipe.shape("XOX", "XKX", "XKX");
-        recipe.setIngredient('X', new RecipeChoice.ExactChoice(brassIngot));
-        recipe.setIngredient('O', recoveryCompass);
+        recipe.setIngredient('X', new RecipeChoice.ExactChoice(new ItemStack(Material.COPPER_INGOT)));
+        recipe.setIngredient('O', new ItemStack(Material.RECOVERY_COMPASS));
         recipe.setIngredient('K', Material.BREEZE_ROD);
 
         Bukkit.addRecipe(recipe);
     }
-    private void craftBrassIngot() {
-        NamespacedKey recipeKey = new NamespacedKey(this, "brass_ingot_recipe");
-        ItemStack brassIngot = createBrassIngotItem();
-        ItemStack zinc = createZincItem();
-        ItemStack copperIngot = new ItemStack(Material.COPPER_INGOT);
-
-        ShapelessRecipe recipe = new ShapelessRecipe(recipeKey, brassIngot);
-        recipe.addIngredient(new RecipeChoice.ExactChoice(zinc));
-        recipe.addIngredient(new RecipeChoice.ExactChoice(copperIngot));
-
-        Bukkit.addRecipe(recipe);
-    }
-
-    @EventHandler
-    public void onPrepareCraftBrassIngot(PrepareItemCraftEvent event) {
-        CraftingInventory inventory = event.getInventory();
-
-        ItemStack zinc = createZincItem();
-        ItemStack copperIngot = new ItemStack(Material.COPPER_INGOT);
-
-        if (hasCorrectIngredients(inventory, zinc, copperIngot)) {
-            inventory.setResult(createBrassIngotItem());
-        }
-    }
-
-    private boolean hasCorrectIngredients(CraftingInventory inventory, ItemStack... ingredients) {
-        ItemStack[] matrix = inventory.getMatrix();
-
-        if (matrix.length != ingredients.length) {
-            return false;
-        }
-
-        for (int i = 0; i < matrix.length; i++) {
-            ItemStack currentItem = matrix[i];
-            ItemStack requiredItem = ingredients[i];
-            if (currentItem == null || !currentItem.isSimilar(requiredItem)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-
-    @EventHandler
-    public void onPrepareCraftExtenderTool(PrepareItemCraftEvent event) {
-        CraftingInventory inventory = event.getInventory();
-
-        String[] shape = {"XOX", "XKX", "XKX"};
-        Map<Character, ItemStack> ingredients = new HashMap<>();
-        ingredients.put('X', createBrassIngotItem());
-        ingredients.put('O', new ItemStack(Material.RECOVERY_COMPASS));
-        ingredients.put('K', new ItemStack(Material.BREEZE_ROD));
-
-        if (matchesRecipe(inventory, shape, ingredients)) {
-            inventory.setResult(createExtenderToolItem());
-        }
-    }
-
-    private boolean matchesRecipe(CraftingInventory inventory, String[] shape, Map<Character, ItemStack> ingredients) {
-        ItemStack[] matrix = inventory.getMatrix();
-
-        int shapeRows = shape.length;
-        int shapeCols = shape[0].length();
-        if (inventory.getMatrix().length != shapeRows || inventory.getResult().getType() == Material.AIR) {
-            return false;
-        }
-
-        for (int i = 0; i < shapeRows; i++) {
-            for (int j = 0; j < shapeCols; j++) {
-                char symbol = shape[i].charAt(j);
-                ItemStack requiredItem = ingredients.get(symbol);
-                ItemStack currentItem = matrix[i * shapeCols + j];
-                if (requiredItem != null && (currentItem == null || !currentItem.isSimilar(requiredItem))) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         NamespacedKey extendertoolrecipeKey = new NamespacedKey(this, "extender_tool_recipe");
-        NamespacedKey brassingotrecipeKey = new NamespacedKey(this, "brass_ingot_recipe");
         player.discoverRecipe(extendertoolrecipeKey);
-        player.discoverRecipe(brassingotrecipeKey);
     }
-
-
-    @EventHandler
-    public void onZincDrop(BlockBreakEvent event) {
-        if (event.getBlock().getType() == Material.DIORITE) {
-            if (Math.random() < 0.005) {
-                event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), createRawZincItem());
-            }
-        }
-    }
-
-    @EventHandler
-    public void onBrassIngotCraft(PrepareItemCraftEvent event) {
-        ItemStack[] matrix = event.getInventory().getMatrix();
-        NamespacedKey extenderToolKey = new NamespacedKey(this, "extender_tool_recipe");
-        Recipe recipe = event.getRecipe();
-
-        if (recipe != null && recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(extenderToolKey)) {
-            return;
-        }
-
-        for (ItemStack item : matrix) {
-            if (item != null && item.getType() == Material.GOLD_INGOT) {
-                ItemMeta meta = item.getItemMeta();
-                if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, BRASS_INGOT_KEY), PersistentDataType.BYTE)) {
-                    event.getInventory().setResult(null);
-                    return;
-                }
-            }
-        }
-    }
-
-
-    @EventHandler
-    public void onZincRawCraft(PrepareItemCraftEvent event) {
-        ItemStack[] matrix = event.getInventory().getMatrix();
-        if (matrix.length == 9) {
-            for (ItemStack item : matrix) {
-                if (item != null && item.getType() == Material.RAW_IRON) {
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, RAW_ZINC_KEY), PersistentDataType.BYTE)) {
-                        event.getInventory().setResult(null);
-                        return;
-                    }
-                }
-            }
-        }
-    }
-    @EventHandler
-    public void onZincCraft(PrepareItemCraftEvent event) {
-        ItemStack[] matrix = event.getInventory().getMatrix();
-        NamespacedKey brassKey = new NamespacedKey(this, "brass_ingot_recipe");
-        Recipe recipe = event.getRecipe();
-
-        if (recipe != null && recipe instanceof ShapelessRecipe && ((ShapelessRecipe) recipe).getKey().equals(brassKey)) {
-            return;
-        }
-
-        for (ItemStack item : matrix) {
-            if (item != null && item.getType() == Material.IRON_INGOT) {
-                ItemMeta meta = item.getItemMeta();
-                if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, ZINC_KEY), PersistentDataType.BYTE)) {
-                    event.getInventory().setResult(null);
-                    return;
-                }
-            }
-        }
-    }
-
-    @EventHandler
-    public void onZincSmelt(FurnaceSmeltEvent event) {
-        ItemStack item = event.getSource();
-        if (item != null && item.getType() == Material.RAW_IRON) {
-            ItemMeta meta = item.getItemMeta();
-            if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, RAW_ZINC_KEY), PersistentDataType.BYTE)) {
-                event.setResult(createZincItem());
-            }
-        }
-    }
-
-
 
 }
