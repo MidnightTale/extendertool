@@ -8,14 +8,11 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
-import org.bukkit.event.inventory.PrepareSmithingEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.Damageable;
@@ -28,7 +25,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -43,6 +39,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
         craftExtenderTool();
+        smithingBrassIngot();
     }
 
     @Override
@@ -231,11 +228,25 @@ public final class Extendertool extends JavaPlugin implements Listener {
         Bukkit.addRecipe(recipe);
     }
 
+    private void smithingBrassIngot() {
+        NamespacedKey recipeKey = new NamespacedKey(this, "brass_ingot_recipe");
+
+        ItemStack result = createBrassIngotItem();
+        RecipeChoice base = new RecipeChoice.ExactChoice(createZincItem());
+        RecipeChoice template = new RecipeChoice.ExactChoice(createZincItem());
+        RecipeChoice addition = new RecipeChoice.ExactChoice(new ItemStack(Material.COPPER_INGOT));
+
+        SmithingRecipe smithingRecipe = new SmithingTransformRecipe (recipeKey, result, template, base, addition);
+        getServer().addRecipe(smithingRecipe);
+    }
+
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        NamespacedKey recipeKey = new NamespacedKey(this, "extender_tool_recipe");
-        player.discoverRecipe(recipeKey);
+        NamespacedKey extendertoolrecipeKey = new NamespacedKey(this, "extender_tool_recipe");
+        NamespacedKey brassingotrecipeKey = new NamespacedKey(this, "brass_ingot_recipe");
+        player.discoverRecipe(extendertoolrecipeKey);
+        player.discoverRecipe(brassingotrecipeKey);
     }
 
 
@@ -256,25 +267,10 @@ public final class Extendertool extends JavaPlugin implements Listener {
         return item != null && item.getType() == Material.COPPER_INGOT && item.hasItemMeta();
     }
 
-    @EventHandler
-    public void onBrassCombined(PrepareSmithingEvent event) {
-        SmithingInventory smithingInventory = event.getInventory();
-        ItemStack base = smithingInventory.getItem(0);
-        ItemStack addition = smithingInventory.getItem(1);
-        ItemStack template = smithingInventory.getItem(2);
-
-        if (isZinc(base) && isCopper(addition) && isZinc(template)) {
-            event.setResult(createBrassIngotItem());
-        }
-        List<HumanEntity> viewers = event.getViewers();
-        viewers.forEach(humanEntity -> ((Player)humanEntity).updateInventory());
-    }
 
     @EventHandler
     public void onBrassIngotCraft(PrepareItemCraftEvent event) {
         ItemStack[] matrix = event.getInventory().getMatrix();
-        ItemStack result = event.getInventory().getResult();
-
         NamespacedKey extenderToolKey = new NamespacedKey(this, "extender_tool_recipe");
         Recipe recipe = event.getRecipe();
 
