@@ -286,11 +286,18 @@ public final class Extendertool extends JavaPlugin implements Listener {
     @EventHandler
     public void onZincCraft(PrepareItemCraftEvent event) {
         ItemStack[] matrix = event.getInventory().getMatrix();
+        NamespacedKey zincKey = new NamespacedKey(this, "brass_ingot_recipe");
+        Recipe recipe = event.getRecipe();
+
+        if (recipe != null && recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(zincKey)) {
+            return;
+        }
+
         if (matrix.length == 9) {
             for (ItemStack item : matrix) {
-                if (item != null && item.getType() == Material.RAW_IRON) {
+                if (item != null && item.getType() == Material.IRON_INGOT) {
                     ItemMeta meta = item.getItemMeta();
-                    if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, RAW_ZINC_KEY), PersistentDataType.BYTE)) {
+                    if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(this, ZINC_KEY), PersistentDataType.BYTE)) {
                         event.getInventory().setResult(null);
                         return;
                     }
