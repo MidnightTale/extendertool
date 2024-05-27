@@ -259,15 +259,6 @@ public final class Extendertool extends JavaPlugin implements Listener {
         }
     }
 
-    private boolean isZinc(ItemStack item) {
-        return item != null && item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(this, ZINC_KEY), PersistentDataType.BYTE);
-    }
-
-    private boolean isCopper(ItemStack item) {
-        return item != null && item.getType() == Material.COPPER_INGOT && item.hasItemMeta();
-    }
-
-
     @EventHandler
     public void onBrassIngotCraft(PrepareItemCraftEvent event) {
         ItemStack[] matrix = event.getInventory().getMatrix();
