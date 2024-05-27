@@ -24,9 +24,6 @@ import java.util.UUID;
 public final class Extendertool extends JavaPlugin implements Listener {
 
     private static final String CUSTOM_TOOL_KEY = "extendertool_item";
-    private static final String DURABILITY_KEY = "extendertool_durability";
-    private static final int INITIAL_DURABILITY = 10;
-    private static final int MAX_DURABILITY = Material.SHEARS.getMaxDurability();
 
     @Override
     public void onEnable() {
@@ -66,13 +63,10 @@ public final class Extendertool extends JavaPlugin implements Listener {
             meta.setCustomModelData(CustomModelData);
 
             NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
-            NamespacedKey durabilityKey = new NamespacedKey(this, DURABILITY_KEY);
             PersistentDataContainer container = meta.getPersistentDataContainer();
             container.set(toolKey, PersistentDataType.BYTE, (byte) 1);
-            container.set(durabilityKey, PersistentDataType.INTEGER, INITIAL_DURABILITY);
 
             item.setItemMeta(meta);
-            item.setDurability((short) (MAX_DURABILITY - INITIAL_DURABILITY));
 
             player.getInventory().addItem(item);
         }
@@ -98,15 +92,10 @@ public final class Extendertool extends JavaPlugin implements Listener {
             ItemMeta meta = item.getItemMeta();
             PersistentDataContainer container = meta.getPersistentDataContainer();
             NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
-            NamespacedKey durabilityKey = new NamespacedKey(this, DURABILITY_KEY);
 
             if (container.has(toolKey, PersistentDataType.BYTE)) {
-                int durability = container.getOrDefault(durabilityKey, PersistentDataType.INTEGER, INITIAL_DURABILITY);
-                durability--;
-                    container.set(durabilityKey, PersistentDataType.INTEGER, durability);
-                    item.setItemMeta(meta);
-                    item.setDurability((short) (MAX_DURABILITY - durability));
-                }
+                short currentDurability = item.getDurability();
+                item.setDurability((short) (currentDurability - 1));
             }
         }
     }
