@@ -1,0 +1,4 @@
+name: extendertool
+version: '${version}'
+main: net.hynse.extendertool.Extendertool
+api-version: '1.20'
