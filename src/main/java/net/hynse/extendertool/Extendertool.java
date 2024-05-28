@@ -179,9 +179,9 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
         NamespacedKey recipeKey = new NamespacedKey(this, "extender_tool_recipe");
 
         ShapedRecipe recipe = new ShapedRecipe(recipeKey, createExtenderToolItem());
-        recipe.shape("XOX", "XKX", "XKX");
-        recipe.setIngredient('X', new RecipeChoice.ExactChoice(new ItemStack(Material.COPPER_INGOT)));
-        recipe.setIngredient('O', new ItemStack(Material.RECOVERY_COMPASS));
+        recipe.shape("OX ", "XKX", " XK");
+        recipe.setIngredient('X', new RecipeChoice.ExactChoice(new ItemStack(Material.COPPER_BLOCK)));
+        recipe.setIngredient('O', new ItemStack(Material.POWDER_SNOW));
         recipe.setIngredient('K', Material.BLAZE_ROD);
 
         Bukkit.addRecipe(recipe);

@@ -30,7 +30,7 @@ dependencies {
 //    compileOnly "org.spigotmc:spigot-api:1.20.6-R0.1-SNAPSHOT"
     compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
 
-    implementation  'com.github.retrooper.packetevents:spigot:2.3.0'
+//    implementation  'com.github.retrooper.packetevents:spigot:2.3.0'
     implementation 'com.github.NahuLD:folia-scheduler-wrapper:v0.0.3'
     implementation group: 'org.apache.clerezza.ext', name: 'org.json.simple', version: '0.4'
 }
@@ -54,8 +54,8 @@ tasks.withType(JavaCompile).configureEach {
 shadowJar {
     // Define the desired JAR file name format
     minimize()
-    relocate 'com.github.retrooper.packetevents', 'net.hynse.sacleshifter.packetevents.api'
-    relocate 'com.github.NahuLD:folia-scheduler-wrapper', 'net.hynse.sacleshifter.folia-scheduler-wrapper'
+//    relocate 'com.github.retrooper.packetevents', 'net.hynse.sacleshifter.packetevents.api'
+    relocate 'com.github.NahuLD:folia-scheduler-wrapper', 'net.hynse.extendertool.folia-scheduler-wrapper'
     archiveFileName.set("${rootProject.name}-${version}.jar")
 }
 
