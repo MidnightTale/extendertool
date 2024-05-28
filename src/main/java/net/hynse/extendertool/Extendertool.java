@@ -17,6 +17,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
+import org.bukkit.event.inventory.PrepareAnvilEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerShearEntityEvent;
@@ -96,6 +98,30 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
         }
     }
 
+    @EventHandler
+    public void onPrepareAnvil(PrepareAnvilEvent event) {
+        ItemStack firstItem = event.getInventory().getItem(0);
+        ItemStack secondItem = event.getInventory().getItem(1);
+
+        if (isextendertool(firstItem) || isextendertool(secondItem)) {
+            if (secondItem != null && secondItem.getType() == Material.WIND_CHARGE) {
+                ItemMeta meta = firstItem.getItemMeta();
+                if (meta instanceof Damageable damageable) {
+                    int currentDamage = damageable.getDamage();
+                    damageable.setDamage(Math.max(0, currentDamage - 128));
+                    firstItem.setItemMeta(meta);
+                    event.setResult(firstItem);
+                }
+            } else {
+                event.setResult(null);
+            }
+        } else if ((firstItem != null && firstItem.getType() == Material.SHEARS) || (secondItem != null && secondItem.getType() == Material.SHEARS)) {
+            event.setResult(null);
+        }
+    }
+
+
+
     private void handleToolDurability(Player player, EquipmentSlot slot) {
         ItemStack item = player.getInventory().getItem(slot);
         if (item != null && item.hasItemMeta()) {
@@ -145,6 +171,7 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
         }
         return false;
     }
+
 
     private ItemStack createExtenderToolItem() {
         ItemStack extendertool = new ItemStack(Material.SHEARS);
