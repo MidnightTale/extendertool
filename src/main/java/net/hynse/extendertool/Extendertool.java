@@ -16,10 +16,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.inventory.*;
@@ -27,8 +24,6 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -209,7 +204,7 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
         recipe.shape("OX ", "XKX", " XK");
         recipe.setIngredient('X', new RecipeChoice.ExactChoice(new ItemStack(Material.COPPER_BLOCK)));
         recipe.setIngredient('O', new ItemStack(Material.POWDER_SNOW));
-        recipe.setIngredient('K', Material.BLAZE_ROD);
+        recipe.setIngredient('K', new RecipeChoice.ExactChoice(new ItemStack(Material.BREEZE_ROD)));
 
         Bukkit.addRecipe(recipe);
     }
