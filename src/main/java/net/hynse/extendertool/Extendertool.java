@@ -98,23 +98,10 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
         ItemStack firstItem = event.getInventory().getItem(0);
         ItemStack secondItem = event.getInventory().getItem(1);
 
-        if (isextendertool(firstItem) || isextendertool(secondItem)) {
-            if (secondItem != null && secondItem.getType() == Material.WIND_CHARGE) {
-                ItemMeta meta = firstItem.getItemMeta();
-                if (meta instanceof Damageable damageable) {
-                    int currentDamage = damageable.getDamage();
-                    damageable.setDamage(Math.max(0, currentDamage - 128));
-                    firstItem.setItemMeta(meta);
-                    event.setResult(firstItem);
-                }
-            } else {
-                event.setResult(null);
-            }
-        } else if ((firstItem != null && firstItem.getType() == Material.SHEARS) || (secondItem != null && secondItem.getType() == Material.SHEARS)) {
+        if (isextendertool(firstItem) || isextendertool(secondItem) || (firstItem != null && firstItem.getType() == Material.SHEARS) || (secondItem != null && secondItem.getType() == Material.SHEARS)) {
             event.setResult(null);
         }
     }
-
 
 
     private void handleToolDurability(Player player, EquipmentSlot slot) {
@@ -201,13 +188,14 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
         NamespacedKey recipeKey = new NamespacedKey(this, "extender_tool_recipe");
 
         ShapedRecipe recipe = new ShapedRecipe(recipeKey, createExtenderToolItem());
-        recipe.shape("OX ", "XKX", " XK");
+        recipe.shape("KX ", "XOX", " XO");
         recipe.setIngredient('X', new RecipeChoice.ExactChoice(new ItemStack(Material.COPPER_BLOCK)));
-        recipe.setIngredient('O', new ItemStack(Material.POWDER_SNOW));
-        recipe.setIngredient('K', new RecipeChoice.ExactChoice(new ItemStack(Material.BREEZE_ROD)));
+        recipe.setIngredient('O', new ItemStack(Material.BREEZE_ROD));
+        recipe.setIngredient('K', Material.POWDER_SNOW_BUCKET);
 
         Bukkit.addRecipe(recipe);
     }
+
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
