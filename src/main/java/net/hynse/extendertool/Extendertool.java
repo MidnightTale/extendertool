@@ -1,5 +1,7 @@
 package net.hynse.extendertool;
 
+import me.nahu.scheduler.wrapper.FoliaWrappedJavaPlugin;
+import me.nahu.scheduler.wrapper.runnable.WrappedRunnable;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
@@ -11,28 +13,30 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.inventory.FurnaceSmeltEvent;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.inventory.*;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.inventory.FurnaceSmeltEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerShearEntityEvent;
+import org.bukkit.inventory.*;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
-public final class Extendertool extends JavaPlugin implements Listener {
+public final class Extendertool extends FoliaWrappedJavaPlugin implements Listener {
 
     private static final String CUSTOM_TOOL_KEY = "extendertool_item";
+    private final Map<ItemStack, Boolean> isAnimatingMap = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -80,6 +84,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
             handleToolDurability(player, EquipmentSlot.OFF_HAND);
         }
     }
+
     @EventHandler
     public void onPlayerShearEntity(PlayerShearEntityEvent event) {
         Player player = event.getPlayer();
@@ -90,7 +95,6 @@ public final class Extendertool extends JavaPlugin implements Listener {
             event.setCancelled(true);
         }
     }
-
 
     private void handleToolDurability(Player player, EquipmentSlot slot) {
         ItemStack item = player.getInventory().getItem(slot);
@@ -110,6 +114,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
                 } else if (shouldLoseDurability(item)) {
                     damageable.setDamage(currentDamage + 1);
                     item.setItemMeta(meta);
+                    animateTool(item);
                 }
             }
         }
@@ -130,6 +135,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
         }
         return 100;
     }
+
     private boolean isextendertool(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
@@ -139,6 +145,7 @@ public final class Extendertool extends JavaPlugin implements Listener {
         }
         return false;
     }
+
     private ItemStack createExtenderToolItem() {
         ItemStack extendertool = new ItemStack(Material.SHEARS);
         ItemMeta meta = extendertool.getItemMeta();
@@ -160,9 +167,6 @@ public final class Extendertool extends JavaPlugin implements Listener {
             meta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED, AttackoffHandModifier);
             meta.setCustomModelData(CustomModelData);
             meta.displayName(Component.text("Extender Tool").decoration(TextDecoration.ITALIC, false));
-            meta.setRarity(ItemRarity.EPIC);
-            meta.setMaxStackSize(1);
-
             NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
             PersistentDataContainer container = meta.getPersistentDataContainer();
             container.set(toolKey, PersistentDataType.BYTE, (byte) 1);
@@ -178,10 +182,11 @@ public final class Extendertool extends JavaPlugin implements Listener {
         recipe.shape("XOX", "XKX", "XKX");
         recipe.setIngredient('X', new RecipeChoice.ExactChoice(new ItemStack(Material.COPPER_INGOT)));
         recipe.setIngredient('O', new ItemStack(Material.RECOVERY_COMPASS));
-        recipe.setIngredient('K', Material.BREEZE_ROD);
+        recipe.setIngredient('K', Material.BLAZE_ROD);
 
         Bukkit.addRecipe(recipe);
     }
+
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
@@ -189,4 +194,41 @@ public final class Extendertool extends JavaPlugin implements Listener {
         player.discoverRecipe(extendertoolrecipeKey);
     }
 
+    private void animateTool(ItemStack item) {
+        if (isAnimatingMap.getOrDefault(item, false)) {
+            return;
+        }
+
+        isAnimatingMap.put(item, true);
+
+        new WrappedRunnable() {
+            private int customModelData = 86004;
+            private boolean incrementing = true;
+
+            @Override
+            public void run() {
+                ItemMeta meta = item.getItemMeta();
+                if (meta != null) {
+                    if (incrementing) {
+                        if (customModelData <= 86016) {
+                            meta.setCustomModelData(customModelData);
+                            customModelData++;
+                        } else {
+                            incrementing = false;
+                            customModelData--;
+                        }
+                    } else {
+                        if (customModelData >= 86003) {
+                            meta.setCustomModelData(customModelData);
+                            customModelData--;
+                        } else {
+                            this.cancel();
+                            isAnimatingMap.put(item, false);
+                        }
+                    }
+                    item.setItemMeta(meta);
+                }
+            }
+        }.runTaskTimer(this, 1, 1);
+    }
 }
