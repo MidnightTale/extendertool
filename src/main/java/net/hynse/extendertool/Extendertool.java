@@ -133,62 +133,59 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
 
     private void handleToolDurability(Player player, EquipmentSlot slot) {
         ItemStack item = player.getInventory().getItem(slot);
-        if (item != null && item.hasItemMeta()) {
-            ItemMeta meta = item.getItemMeta();
-            PersistentDataContainer container = meta.getPersistentDataContainer();
-            final NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
+        if (item == null || !item.hasItemMeta()) return;
 
-            if (container.has(toolKey, PersistentDataType.BYTE)) {
-                Damageable damageable = (Damageable) meta;
-                int currentDamage = damageable.getDamage();
+        ItemMeta meta = item.getItemMeta();
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        final NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
 
-                if (currentDamage >= item.getType().getMaxDurability()) {
-                    player.getInventory().setItem(slot, null);
-                    player.getWorld().spawnParticle(Particle.WAX_OFF, player.getLocation(), 100);
-                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.6f, 1.0f);
-                } else if (shouldLoseDurability(item)) {
-                    int finalmodel = 0;
-                    int currentmodel = meta.getCustomModelData();
-                    damageable.setDamage(currentDamage + 1);
-                    int warmValue = playerWarmValues.getOrDefault(player.getUniqueId(), 0);
+        if (!container.has(toolKey, PersistentDataType.BYTE)) return;
 
-                    if (warmValue >= 0 && warmValue <= 5) {
-                        warmValue = Math.min(warmValue + 1, 14);
-                        playerWarmValues.put(player.getUniqueId(), warmValue);
-                        finalmodel = currentmodel + 1;
-                    } else if (warmValue >= 6 && warmValue <= 8) {
-                        int chance = new Random().nextInt(100);
-                        if (chance < 69) {
-                            warmValue = Math.min(warmValue + 1, 14);
-                            playerWarmValues.put(player.getUniqueId(), warmValue);
-                            finalmodel = currentmodel + 1;
-                        } else {
-                            finalmodel = currentmodel;
-                        }
-                    } else if (warmValue >= 9 && warmValue <= 10) {
-                        int chance = new Random().nextInt(100);
-                        if (chance < 35) {
-                            warmValue = Math.min(warmValue + 1, 14);
-                            playerWarmValues.put(player.getUniqueId(), warmValue);
-                            finalmodel = currentmodel + 1;
-                        } else {
-                            finalmodel = currentmodel;
-                        }
-                    } else if (warmValue > 10) {
-                        player.damage(1);
-                        finalmodel = currentmodel + 1;
-                    }
-                    if (finalmodel >= 86015) {
-                        meta.setCustomModelData(86014);
-                    }
-                    Component warningBar = ActionBar.createWarningBar(warmValue, 10, 10, '█','▒');
-                    ActionBar.sendWarningBar(player, warningBar);
-                    meta.setCustomModelData(finalmodel);
-                    item.setItemMeta(meta);
-                }
-            }
+        Damageable damageable = (Damageable) meta;
+        int currentDamage = damageable.getDamage();
+
+        if (currentDamage >= item.getType().getMaxDurability()) {
+            player.getInventory().setItem(slot, null);
+            player.getWorld().spawnParticle(Particle.WAX_OFF, player.getLocation(), 100);
+            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.6f, 1.0f);
+            return;
         }
+
+        if (!shouldLoseDurability(item)) return;
+
+        damageable.setDamage(currentDamage + 1);
+
+        int warmValue = playerWarmValues.getOrDefault(player.getUniqueId(), 0);
+        int currentModel = meta.getCustomModelData();
+        int finalModel = currentModel;
+
+        if (warmValue <= 5) {
+            warmValue = Math.min(warmValue + 1, 14);
+        } else if (warmValue <= 8 && new Random().nextInt(100) < 69) {
+            warmValue = Math.min(warmValue + 1, 14);
+        } else if (warmValue <= 10 && new Random().nextInt(100) < 35) {
+            warmValue = Math.min(warmValue + 1, 14);
+        } else if (warmValue > 10) {
+            player.damage(1);
+        }
+
+        if (warmValue <= 10) {
+            finalModel = currentModel + 1;
+        }
+
+        playerWarmValues.put(player.getUniqueId(), warmValue);
+
+        if (finalModel >= 86015) {
+            meta.setCustomModelData(86014);
+        } else {
+            meta.setCustomModelData(finalModel);
+        }
+
+        Component warningBar = ActionBar.createWarningBar(warmValue, 10, 10, '█', '▒');
+        ActionBar.sendWarningBar(player, warningBar);
+        item.setItemMeta(meta);
     }
+
 
     private void decrementCustomModelData(Player player) {
         ItemStack mainHandItem = player.getInventory().getItemInMainHand();
