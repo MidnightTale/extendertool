@@ -10,12 +10,14 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -86,6 +88,19 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
     }
 
     @EventHandler
+    public void onEntityDamage(EntityDamageByEntityEvent event) {
+        Entity attacker = event.getDamager();
+        if (attacker instanceof Player) {
+            Player player = (Player) attacker;
+            if (player.getGameMode() != GameMode.CREATIVE) {
+                handleToolDurability(player, EquipmentSlot.HAND);
+                handleToolDurability(player, EquipmentSlot.OFF_HAND);
+            }
+        }
+    }
+
+
+    @EventHandler
     public void onPlayerShearEntity(PlayerShearEntityEvent event) {
         Player player = event.getPlayer();
         ItemStack mainHandItem = player.getInventory().getItemInMainHand();
@@ -95,6 +110,7 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
             event.setCancelled(true);
         }
     }
+
 
     private void handleToolDurability(Player player, EquipmentSlot slot) {
         ItemStack item = player.getInventory().getItem(slot);
@@ -176,6 +192,7 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
         }
         return extendertool;
     }
+
 
     private void craftExtenderTool() {
         NamespacedKey recipeKey = new NamespacedKey(this, "extender_tool_recipe");
