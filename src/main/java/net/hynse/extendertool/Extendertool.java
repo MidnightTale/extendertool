@@ -16,7 +16,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.inventory.PrepareAnvilEvent;
+import org.bukkit.event.inventory.FurnaceSmeltEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.inventory.*;
@@ -24,6 +25,8 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -93,17 +96,6 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
         }
     }
 
-    @EventHandler
-    public void onPrepareAnvil(PrepareAnvilEvent event) {
-        ItemStack firstItem = event.getInventory().getItem(0);
-        ItemStack secondItem = event.getInventory().getItem(1);
-
-        if (isextendertool(firstItem) || isextendertool(secondItem) || (firstItem != null && firstItem.getType() == Material.SHEARS) || (secondItem != null && secondItem.getType() == Material.SHEARS)) {
-            event.setResult(null);
-        }
-    }
-
-
     private void handleToolDurability(Player player, EquipmentSlot slot) {
         ItemStack item = player.getInventory().getItem(slot);
         if (item != null && item.hasItemMeta()) {
@@ -154,7 +146,6 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
         return false;
     }
 
-
     private ItemStack createExtenderToolItem() {
         ItemStack extendertool = new ItemStack(Material.SHEARS);
         ItemMeta meta = extendertool.getItemMeta();
@@ -175,6 +166,8 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
             meta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED, AttackmainHandModifier);
             meta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED, AttackoffHandModifier);
             meta.setCustomModelData(CustomModelData);
+            meta.setRarity(ItemRarity.RARE);
+            meta.setMaxStackSize(1);
             meta.displayName(Component.text("Extender Tool").decoration(TextDecoration.ITALIC, false));
             NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
             PersistentDataContainer container = meta.getPersistentDataContainer();
@@ -190,12 +183,11 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
         ShapedRecipe recipe = new ShapedRecipe(recipeKey, createExtenderToolItem());
         recipe.shape("KX ", "XOX", " XO");
         recipe.setIngredient('X', new RecipeChoice.ExactChoice(new ItemStack(Material.COPPER_BLOCK)));
-        recipe.setIngredient('O', new ItemStack(Material.BREEZE_ROD));
+        recipe.setIngredient('O', new RecipeChoice.ExactChoice(new ItemStack(Material.BREEZE_ROD)));
         recipe.setIngredient('K', Material.POWDER_SNOW_BUCKET);
 
         Bukkit.addRecipe(recipe);
     }
-
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
@@ -222,15 +214,15 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
                     if (incrementing) {
                         if (customModelData <= 86016) {
                             meta.setCustomModelData(customModelData);
-                            customModelData++;
+                            customModelData += 2;
                         } else {
                             incrementing = false;
-                            customModelData--;
+                            customModelData -= 1;
                         }
                     } else {
                         if (customModelData >= 86003) {
                             meta.setCustomModelData(customModelData);
-                            customModelData--;
+                            customModelData -= 1;
                         } else {
                             this.cancel();
                             isAnimatingMap.put(item, false);
