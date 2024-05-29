@@ -61,7 +61,7 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
                     }
                 }
             }
-        }.runTaskTimer(this, 1,16);
+        }.runTaskTimer(this, 1,32);
     }
 
 
@@ -147,16 +147,38 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
                     player.getWorld().spawnParticle(Particle.WAX_OFF, player.getLocation(), 100);
                     player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.6f, 1.0f);
                 } else if (shouldLoseDurability(item)) {
+                    int finalmodel = 0;
+                    int currentmodel = meta.getCustomModelData();
                     damageable.setDamage(currentDamage + 1);
                     int warmValue = playerWarmValues.getOrDefault(player.getUniqueId(), 0);
-                    if (warmValue < 10) {
-                        playerWarmValues.put(player.getUniqueId(), warmValue + 1);
-                    } else {
+
+                    if (warmValue >= 0 && warmValue <= 5) {
+                        warmValue = Math.min(warmValue + 1, 14);
+                        playerWarmValues.put(player.getUniqueId(), warmValue);
+                        finalmodel = currentmodel + 1;
+                    } else if (warmValue >= 6 && warmValue <= 8) {
+                        int chance = new Random().nextInt(100);
+                        if (chance < 69) {
+                            warmValue = Math.min(warmValue + 1, 14);
+                            playerWarmValues.put(player.getUniqueId(), warmValue);
+                            finalmodel = currentmodel + 1;
+                        } else {
+                            finalmodel = currentmodel;
+                        }
+                    } else if (warmValue >= 9 && warmValue <= 10) {
+                        int chance = new Random().nextInt(100);
+                        if (chance < 35) {
+                            warmValue = Math.min(warmValue + 1, 14);
+                            playerWarmValues.put(player.getUniqueId(), warmValue);
+                            finalmodel = currentmodel + 1;
+                        } else {
+                            finalmodel = currentmodel;
+                        }
+                    } else if (warmValue > 10) {
                         player.damage(1);
+                        finalmodel = currentmodel + 1;
                     }
-                    int currentmodel = meta.getCustomModelData();
-                    int finalmodel = currentmodel + 1;
-                    if (currentmodel >= 86015) {
+                    if (finalmodel >= 86015) {
                         meta.setCustomModelData(86014);
                     }
                     Component warningBar = ActionBar.createWarningBar(warmValue, 10, 10, '█','▒');
