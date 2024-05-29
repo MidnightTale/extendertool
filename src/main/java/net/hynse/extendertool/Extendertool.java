@@ -2,6 +2,7 @@ package net.hynse.extendertool;
 
 import me.nahu.scheduler.wrapper.FoliaWrappedJavaPlugin;
 import me.nahu.scheduler.wrapper.runnable.WrappedRunnable;
+import net.hynse.extendertool.Util.ActionBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
@@ -18,8 +19,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.inventory.FurnaceSmeltEvent;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.inventory.*;
@@ -27,8 +26,6 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,13 +35,35 @@ import java.util.UUID;
 public final class Extendertool extends FoliaWrappedJavaPlugin implements Listener {
 
     private static final String CUSTOM_TOOL_KEY = "extendertool_item";
-    private final Map<ItemStack, Boolean> isAnimatingMap = new HashMap<>();
+    private final Map<UUID, Integer> playerWarmValues = new HashMap<>();
 
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
         craftExtenderTool();
+        startWarmDecrementTask();
     }
+    private void startWarmDecrementTask() {
+        new WrappedRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    int warmValue = playerWarmValues.getOrDefault(player.getUniqueId(), 0);
+                    if (warmValue > 0) {
+                        warmValue--;
+                        decrementCustomModelData(player);
+                        playerWarmValues.put(player.getUniqueId(), warmValue);
+                        Component warningBar = ActionBar.createWarningBar(warmValue, 10, 10, '█','▒');
+                        ActionBar.sendWarningBar(player, warningBar);
+                        if (warmValue == 0) {
+                            playerWarmValues.remove(player.getUniqueId());
+                        }
+                    }
+                }
+            }
+        }.runTaskTimer(this, 1,8);
+    }
+
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -129,12 +148,55 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
                     player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.6f, 1.0f);
                 } else if (shouldLoseDurability(item)) {
                     damageable.setDamage(currentDamage + 1);
+                    int warmValue = playerWarmValues.getOrDefault(player.getUniqueId(), 0);
+                    if (warmValue < 10) {
+                        playerWarmValues.put(player.getUniqueId(), warmValue + 1);
+                    } else {
+                        player.damage(1);
+                    }
+                    int currentmodel = meta.getCustomModelData();
+                    int finalmodel = currentmodel + 1;
+                    if (currentmodel >= 86015) {
+                        meta.setCustomModelData(86014);
+                    }
+                    Component warningBar = ActionBar.createWarningBar(warmValue, 10, 10, '█','▒');
+                    ActionBar.sendWarningBar(player, warningBar);
+                    meta.setCustomModelData(finalmodel);
                     item.setItemMeta(meta);
-                    animateTool(item);
                 }
             }
         }
     }
+
+    private void decrementCustomModelData(Player player) {
+        ItemStack mainHandItem = player.getInventory().getItemInMainHand();
+        if (isextendertool(mainHandItem)) {
+            decrementItemCustomModelData(mainHandItem);
+        }
+
+        ItemStack offHandItem = player.getInventory().getItemInOffHand();
+        if (isextendertool(offHandItem)) {
+            decrementItemCustomModelData(offHandItem);
+        }
+
+        for (ItemStack itemStack : player.getInventory().getContents()) {
+            if (itemStack != null && (isextendertool(itemStack))) {
+                decrementItemCustomModelData(itemStack);
+            }
+        }
+    }
+
+    private void decrementItemCustomModelData(ItemStack itemStack) {
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta != null) {
+            int currentModelData = meta.getCustomModelData();
+            if (currentModelData > 86003) {
+                meta.setCustomModelData(currentModelData - 1);
+                itemStack.setItemMeta(meta);
+            }
+        }
+    }
+
 
     private boolean shouldLoseDurability(ItemStack item) {
         if (item.containsEnchantment(Enchantment.UNBREAKING)) {
@@ -211,43 +273,5 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
         Player player = event.getPlayer();
         NamespacedKey extendertoolrecipeKey = new NamespacedKey(this, "extender_tool_recipe");
         player.discoverRecipe(extendertoolrecipeKey);
-    }
-
-    private void animateTool(ItemStack item) {
-        if (isAnimatingMap.getOrDefault(item, false)) {
-            return;
-        }
-
-        isAnimatingMap.put(item, true);
-
-        new WrappedRunnable() {
-            private int customModelData = 86004;
-            private boolean incrementing = true;
-
-            @Override
-            public void run() {
-                ItemMeta meta = item.getItemMeta();
-                if (meta != null) {
-                    if (incrementing) {
-                        if (customModelData <= 86016) {
-                            meta.setCustomModelData(customModelData);
-                            customModelData += 2;
-                        } else {
-                            incrementing = false;
-                            customModelData -= 1;
-                        }
-                    } else {
-                        if (customModelData >= 86003) {
-                            meta.setCustomModelData(customModelData);
-                            customModelData -= 1;
-                        } else {
-                            this.cancel();
-                            isAnimatingMap.put(item, false);
-                        }
-                    }
-                    item.setItemMeta(meta);
-                }
-            }
-        }.runTaskTimer(this, 1, 1);
     }
 }
