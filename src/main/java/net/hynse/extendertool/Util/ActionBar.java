@@ -31,7 +31,7 @@ public class ActionBar {
         return builder.build();
     }
     public static void sendWarningBar(Player player, Component bar) {
-        sendActionBar(player, Component.text("Pressure: ").append(bar));
+        sendActionBar(player, Component.text("").append(bar));
     }
 
 

@@ -61,7 +61,7 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
                     }
                 }
             }
-        }.runTaskTimer(this, 1,8);
+        }.runTaskTimer(this, 1,16);
     }
 
 
@@ -229,7 +229,7 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
         ItemMeta meta = extendertool.getItemMeta();
         final int CustomModelData = 86003;
         final int Range = 7;
-        final double Attackspeed = -1.6;
+        final double Attackspeed = -1;
         final String Name = "Interaction Range";
         if (meta != null) {
             AttributeModifier mainHandModifier = new AttributeModifier(UUID.randomUUID(), Name, Range, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
