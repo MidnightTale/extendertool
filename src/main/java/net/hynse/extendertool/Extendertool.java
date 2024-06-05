@@ -227,10 +227,18 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
     }
 
     private int calculateUnbreakingChance(int unbreakingLevel) {
-        if (unbreakingLevel > 0) {
-            return 100 / (unbreakingLevel + 1);
+//        if (unbreakingLevel > 0) {
+//            return 100 / (unbreakingLevel + 1);
+//        }
+        if (unbreakingLevel == 1) {
+            return 50;
+        } else if (unbreakingLevel == 2) {
+            return 25;
+        } else if (unbreakingLevel == 3) {
+            return 8;
+        } else {
+            return 100;
         }
-        return 100;
     }
 
     private boolean isextendertool(ItemStack item) {
@@ -264,6 +272,7 @@ public final class Extendertool extends FoliaWrappedJavaPlugin implements Listen
             meta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED, AttackoffHandModifier);
             meta.setCustomModelData(CustomModelData);
             meta.setRarity(ItemRarity.RARE);
+            meta.setUnbreakable(true);
             meta.setMaxStackSize(1);
             meta.displayName(Component.text("Extender Tool").decoration(TextDecoration.ITALIC, false));
             NamespacedKey toolKey = new NamespacedKey(this, CUSTOM_TOOL_KEY);
